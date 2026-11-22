@@ -71,23 +71,23 @@
     <!-- KPI Cards -->
     <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-sm">
-        <p class="text-xs font-medium text-slate-400">Scoring Outings</p>
-        <p id="kpiMatches" class="text-2xl sm:text-3xl font-bold text-white mt-1">0</p>
-        <p id="kpiTeamMatches" class="text-xs text-slate-500 mt-1">Across ~0 unique matches</p>
+        <p class="text-xs font-medium text-slate-400">Total G+A</p>
+        <p id="kpiGA" class="text-2xl sm:text-3xl font-bold text-amber-400 mt-1">0</p>
+        <p id="kpiContributionsCount" class="text-xs text-slate-500 mt-1">0 contributions logged</p>
       </div>
       <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-sm">
         <p class="text-xs font-medium text-slate-400">Total Bot Goals</p>
         <p id="kpiGoals" class="text-2xl sm:text-3xl font-bold text-emerald-400 mt-1">0</p>
-        <p id="kpiGoalsPerMatch" class="text-xs text-slate-500 mt-1">0.00 / scoring outing</p>
+        <p id="kpiGoalShare" class="text-xs text-slate-500 mt-1">0% of total G+A</p>
       </div>
       <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-sm">
         <p class="text-xs font-medium text-slate-400">Total Bot Assists</p>
         <p id="kpiAssists" class="text-2xl sm:text-3xl font-bold text-sky-400 mt-1">0</p>
-        <p id="kpiAssistsPerMatch" class="text-xs text-slate-500 mt-1">0.00 / scoring outing</p>
+        <p id="kpiAssistShare" class="text-xs text-slate-500 mt-1">0% of total G+A</p>
       </div>
       <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-sm">
-        <p class="text-xs font-medium text-slate-400">Total G+A</p>
-        <p id="kpiGA" class="text-2xl sm:text-3xl font-bold text-amber-400 mt-1">0</p>
+        <p class="text-xs font-medium text-slate-400">Contributing Bots</p>
+        <p id="kpiBotsCount" class="text-2xl sm:text-3xl font-bold text-white mt-1">0</p>
         <p id="kpiTopBot" class="text-xs text-slate-500 mt-1 truncate">Top: —</p>
       </div>
     </section>
@@ -124,7 +124,7 @@
           <span class="text-purple-400 text-base">⚡</span>
         </div>
         <p id="awardExplosiveName" class="text-base font-bold text-white mt-1.5 truncate">—</p>
-        <p id="awardExplosiveStat" class="text-xs text-purple-300/80 mt-0.5">0 multi-G+A outings</p>
+        <p id="awardExplosiveStat" class="text-xs text-purple-300/80 mt-0.5">0 multi-G+A games</p>
       </div>
     </section>
 
@@ -151,7 +151,7 @@
             Filtered
           </span>
         </div>
-        <p class="text-xs text-slate-400 mb-3">Progressive impact trajectory</p>
+        <p class="text-xs text-slate-400 mb-3">Progressive contribution growth</p>
         <div class="relative flex-1 min-h-[240px]">
           <canvas id="trendLineChart"></canvas>
         </div>
@@ -179,13 +179,10 @@
             <option value="ga">Sort: Total G+A</option>
             <option value="goals">Sort: Goals</option>
             <option value="assists">Sort: Assists</option>
-            <option value="matches">Sort: Scoring Outings</option>
-            <option value="goalsPerMatch">Sort: Goals / Outing</option>
-            <option value="assistsPerMatch">Sort: Assists / Outing</option>
-            <option value="perMatch">Sort: G+A / Outing</option>
+            <option value="contributions">Sort: Contributions</option>
             <option value="multiGaMatches">Sort: 2+ G+A Games</option>
             <option value="dualMatches">Sort: Dual Games (G+A)</option>
-            <option value="bestGa">Sort: Best Single Match</option>
+            <option value="bestGa">Sort: Best Single Game</option>
             <option value="gaShare">Sort: Club G+A Share %</option>
           </select>
           <button id="exportCsvBtn" type="button" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
@@ -205,16 +202,13 @@
               <th class="px-3.5 py-3 font-medium">#</th>
               <th class="px-3.5 py-3 font-medium">Bot Name</th>
               <th class="px-3.5 py-3 font-medium">Role</th>
-              <th class="px-3.5 py-3 font-medium text-right whitespace-nowrap" title="Number of submitted outings with at least 1 G+A">Outings</th>
               <th class="px-3.5 py-3 font-medium text-right text-emerald-400">Goals</th>
               <th class="px-3.5 py-3 font-medium text-right text-sky-400">Assists</th>
               <th class="px-3.5 py-3 font-medium text-right text-amber-400 font-semibold">Total G+A</th>
-              <th class="px-3.5 py-3 font-medium text-right whitespace-nowrap">G / Outing</th>
-              <th class="px-3.5 py-3 font-medium text-right whitespace-nowrap">A / Outing</th>
-              <th class="px-3.5 py-3 font-medium text-right whitespace-nowrap">G+A / Outing</th>
-              <th class="px-3.5 py-3 font-medium text-right whitespace-nowrap" title="Outings where the bot had 2 or more G+A">2+ G+A</th>
-              <th class="px-3.5 py-3 font-medium text-right whitespace-nowrap" title="Outings where the bot had BOTH a goal and an assist">Dual (G+A)</th>
-              <th class="px-3.5 py-3 font-medium text-right whitespace-nowrap" title="Highest G+A recorded in a single outing">Best Game</th>
+              <th class="px-3.5 py-3 font-medium text-right whitespace-nowrap" title="Number of submitted entries where this bot contributed">Contributions</th>
+              <th class="px-3.5 py-3 font-medium text-right whitespace-nowrap" title="Games where the bot produced 2 or more G+A">2+ G+A Games</th>
+              <th class="px-3.5 py-3 font-medium text-right whitespace-nowrap" title="Games where the bot produced BOTH a goal and an assist">Dual (G+A)</th>
+              <th class="px-3.5 py-3 font-medium text-right whitespace-nowrap" title="Highest G+A recorded in a single entry">Best Game</th>
               <th class="px-3.5 py-3 font-medium text-right whitespace-nowrap" title="Percentage of all club bot G+A produced by this bot">Club Share</th>
             </tr>
           </thead>
@@ -222,15 +216,15 @@
         </table>
       </div>
       <div class="px-4 py-2.5 bg-slate-950/40 border-t border-slate-800 text-[11px] text-slate-500 flex flex-wrap items-center justify-between gap-2">
-        <span>Tip: Click any bot row to filter the Cumulative G+A chart and Recent Outings to that bot.</span>
-        <span>Outings = logged games where bot contributed &ge; 1 G+A.</span>
+        <span>Tip: Click any bot row to filter the Cumulative G+A chart and Recent Contributions to that bot.</span>
+        <span>Tracking confirmed AI goal contributions ($G+A \ge 1$).</span>
       </div>
     </section>
 
-    <!-- Recent Match Outings -->
+    <!-- Recent Contributions Log -->
     <section class="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
       <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-        <h2 id="recentLogTitle" class="text-sm font-semibold text-slate-200">Recent Scoring Outings</h2>
+        <h2 id="recentLogTitle" class="text-sm font-semibold text-slate-200">Recent Contributions</h2>
         <span id="logCount" class="text-xs text-slate-400">0 entries</span>
       </div>
       <div class="overflow-x-auto">
@@ -255,7 +249,7 @@
     const DEFAULT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQxMoHYFMXvlniianuEJIKjp3l1JKgzS0sB0TVOgeyED6jE0RMDn3ODE1Urm5t_Sjwh-zLxSTnzkNto/pub?output=csv";
     const STORAGE_KEY = "fc27_bot_csv_url";
 
-    // Sample rows adhere to the rule: submissions only made when G+A >= 1
+    // Sample data (G+A >= 1)
     const SAMPLE_ROWS = [
       { Timestamp: "2026-11-20 21:15:00", "Bot Name": "A. Morales", Goals: 2, Assists: 1 },
       { Timestamp: "2026-11-20 21:15:00", "Bot Name": "K. Lindqvist", Goals: 1, Assists: 2 },
@@ -295,13 +289,13 @@
       recentLogTitle: document.getElementById("recentLogTitle"),
       logBody: document.getElementById("logBody"),
       logCount: document.getElementById("logCount"),
-      kpiMatches: document.getElementById("kpiMatches"),
-      kpiTeamMatches: document.getElementById("kpiTeamMatches"),
-      kpiGoals: document.getElementById("kpiGoals"),
-      kpiGoalsPerMatch: document.getElementById("kpiGoalsPerMatch"),
-      kpiAssists: document.getElementById("kpiAssists"),
-      kpiAssistsPerMatch: document.getElementById("kpiAssistsPerMatch"),
       kpiGA: document.getElementById("kpiGA"),
+      kpiContributionsCount: document.getElementById("kpiContributionsCount"),
+      kpiGoals: document.getElementById("kpiGoals"),
+      kpiGoalShare: document.getElementById("kpiGoalShare"),
+      kpiAssists: document.getElementById("kpiAssists"),
+      kpiAssistShare: document.getElementById("kpiAssistShare"),
+      kpiBotsCount: document.getElementById("kpiBotsCount"),
       kpiTopBot: document.getElementById("kpiTopBot"),
       awardMvpName: document.getElementById("awardMvpName"),
       awardMvpStat: document.getElementById("awardMvpStat"),
@@ -340,48 +334,19 @@
         .replace(/'/g, "&#39;");
     }
 
-    // 1. Normalize rows: Each response counts as 1 scoring outing
+    // Normalize rows: extract confirmed goal contributions
     function normalizeRows(rows) {
       return rows
         .map((r, index) => {
           const botName = String(r["Bot Name"] ?? r["Bot"] ?? "").trim();
           if (!botName) return null;
-          const matches = 1;
           const goals = Math.max(0, parseInt(r["Goals"] ?? 0, 10) || 0);
           const assists = Math.max(0, parseInt(r["Assists"] ?? 0, 10) || 0);
           const ga = goals + assists;
           const timestamp = String(r["Timestamp"] ?? "").trim();
-          return { id: index, timestamp, botName, matches, goals, assists, ga };
+          return { id: index, timestamp, botName, goals, assists, ga };
         })
         .filter(Boolean);
-    }
-
-    // Cluster timestamps within 5-minute windows to estimate unique club matches
-    function estimateClubMatches(rows) {
-      if (rows.length === 0) return 0;
-      const parsedTimes = rows
-        .map((r) => {
-          const t = Date.parse(r.timestamp);
-          return isNaN(t) ? null : t;
-        })
-        .filter((t) => t !== null)
-        .sort((a, b) => a - b);
-
-      if (parsedTimes.length === 0) {
-        const uniqueStrings = new Set(rows.map((r) => r.timestamp).filter(Boolean));
-        return Math.max(1, uniqueStrings.size || rows.length);
-      }
-
-      let count = 1;
-      let lastTime = parsedTimes[0];
-      const windowMs = 5 * 60 * 1000; // 5 minutes window
-      for (let i = 1; i < parsedTimes.length; i++) {
-        if (parsedTimes[i] - lastTime > windowMs) {
-          count++;
-          lastTime = parsedTimes[i];
-        }
-      }
-      return count;
     }
 
     // Determine role badge based on scoring vs playmaking profile
@@ -398,7 +363,7 @@
       return { label: "Dual-Threat", badge: "bg-amber-500/10 text-amber-300 border-amber-500/30", icon: "🔥" };
     }
 
-    // Aggregate bot stats with multi-contribution, dual-outings, personal bests, and share %
+    // Aggregate bot stats strictly around contributions
     function aggregateBots(rows) {
       const totalTeamGoals = rows.reduce((s, r) => s + r.goals, 0);
       const totalTeamAssists = rows.reduce((s, r) => s + r.assists, 0);
@@ -410,7 +375,7 @@
         if (!cur) {
           cur = {
             botName: r.botName,
-            matches: 0,
+            contributions: 0,
             goals: 0,
             assists: 0,
             ga: 0,
@@ -422,7 +387,7 @@
           };
           map.set(r.botName, cur);
         }
-        cur.matches += r.matches;
+        cur.contributions++;
         cur.goals += r.goals;
         cur.assists += r.assists;
         cur.ga += r.ga;
@@ -439,11 +404,6 @@
         return {
           ...b,
           role,
-          goalsPerMatch: b.matches > 0 ? b.goals / b.matches : 0,
-          assistsPerMatch: b.matches > 0 ? b.assists / b.matches : 0,
-          perMatch: b.matches > 0 ? b.ga / b.matches : 0,
-          multiGaRate: b.matches > 0 ? (b.multiGaMatches / b.matches) * 100 : 0,
-          dualRate: b.matches > 0 ? (b.dualMatches / b.matches) * 100 : 0,
           gaShare: totalTeamGA > 0 ? (b.ga / totalTeamGA) * 100 : 0,
           goalShare: totalTeamGoals > 0 ? (b.goals / totalTeamGoals) * 100 : 0,
           assistShare: totalTeamAssists > 0 ? (b.assists / totalTeamAssists) * 100 : 0
@@ -453,24 +413,22 @@
 
     function renderAll() {
       const bots = aggregateBots(rawRows);
-      const totalMatches = rawRows.length;
       const totalGoals = rawRows.reduce((s, r) => s + r.goals, 0);
       const totalAssists = rawRows.reduce((s, r) => s + r.assists, 0);
       const totalGA = totalGoals + totalAssists;
-      const estimatedMatches = estimateClubMatches(rawRows);
 
       const sortedByGA = [...bots].sort((a, b) => b.ga - a.ga || b.goals - a.goals);
       const topBot = sortedByGA[0];
 
       // Update KPIs
-      el.kpiMatches.textContent = totalMatches;
-      el.kpiTeamMatches.textContent = totalMatches === 0 ? "No matches logged yet" : `Across ~${estimatedMatches} unique club match${estimatedMatches === 1 ? "" : "es"}`;
-      el.kpiGoals.textContent = totalGoals;
-      el.kpiGoalsPerMatch.textContent = `${totalMatches > 0 ? (totalGoals / totalMatches).toFixed(2) : "0.00"} / scoring outing`;
-      el.kpiAssists.textContent = totalAssists;
-      el.kpiAssistsPerMatch.textContent = `${totalMatches > 0 ? (totalAssists / totalMatches).toFixed(2) : "0.00"} / scoring outing`;
       el.kpiGA.textContent = totalGA;
-      el.kpiTopBot.textContent = topBot ? `Top: ${topBot.botName} (${topBot.ga})` : "Top: —";
+      el.kpiContributionsCount.textContent = `${rawRows.length} contribution${rawRows.length === 1 ? "" : "s"} logged`;
+      el.kpiGoals.textContent = totalGoals;
+      el.kpiGoalShare.textContent = totalGA > 0 ? `${((totalGoals / totalGA) * 100).toFixed(0)}% of total G+A` : "0% of total G+A";
+      el.kpiAssists.textContent = totalAssists;
+      el.kpiAssistShare.textContent = totalGA > 0 ? `${((totalAssists / totalGA) * 100).toFixed(0)}% of total G+A` : "0% of total G+A";
+      el.kpiBotsCount.textContent = bots.length;
+      el.kpiTopBot.textContent = topBot ? `Top: ${topBot.botName} (${topBot.ga} G+A)` : "Top: —";
 
       // Update Trophy Cabinet
       renderTrophyCabinet(bots, totalGA);
@@ -496,7 +454,7 @@
         el.awardPlaymakerName.textContent = "—";
         el.awardPlaymakerStat.textContent = "0 Assists";
         el.awardExplosiveName.textContent = "—";
-        el.awardExplosiveStat.textContent = "0 multi-G+A outings";
+        el.awardExplosiveStat.textContent = "0 multi-G+A games";
         return;
       }
 
@@ -508,17 +466,17 @@
       // Golden Boot: Highest Goals
       const boot = [...bots].sort((a, b) => b.goals - a.goals || b.ga - a.ga)[0];
       el.awardBootName.textContent = boot ? boot.botName : "—";
-      el.awardBootStat.textContent = boot ? `${boot.goals} Goals (${boot.goalsPerMatch.toFixed(2)}/out)` : "—";
+      el.awardBootStat.textContent = boot ? `${boot.goals} Goals` : "—";
 
       // Top Playmaker: Highest Assists
       const playmaker = [...bots].sort((a, b) => b.assists - a.assists || b.ga - a.ga)[0];
       el.awardPlaymakerName.textContent = playmaker ? playmaker.botName : "—";
-      el.awardPlaymakerStat.textContent = playmaker ? `${playmaker.assists} Assists (${playmaker.assistsPerMatch.toFixed(2)}/out)` : "—";
+      el.awardPlaymakerStat.textContent = playmaker ? `${playmaker.assists} Assists` : "—";
 
       // Most Explosive: Most 2+ G+A games (tiebreaker: best single game G+A)
       const explosive = [...bots].sort((a, b) => b.multiGaMatches - a.multiGaMatches || b.bestGa - a.bestGa)[0];
       el.awardExplosiveName.textContent = explosive ? explosive.botName : "—";
-      el.awardExplosiveStat.textContent = explosive ? `${explosive.multiGaMatches} multi-G+A outings (Best: ${explosive.bestGa})` : "—";
+      el.awardExplosiveStat.textContent = explosive ? `${explosive.multiGaMatches} multi-G+A games (Best: ${explosive.bestGa})` : "—";
     }
 
     // Render leaderboard table
@@ -531,7 +489,7 @@
         .sort((a, b) => b[sortKey] - a[sortKey] || b.ga - a.ga);
 
       if (filtered.length === 0) {
-        el.leaderboardBody.innerHTML = `<tr><td colspan="14" class="px-4 py-8 text-center text-slate-500">No matching bots found.</td></tr>`;
+        el.leaderboardBody.innerHTML = `<tr><td colspan="11" class="px-4 py-8 text-center text-slate-500">No matching bots found.</td></tr>`;
         return;
       }
 
@@ -558,15 +516,12 @@
                 <span>${b.role.label}</span>
               </span>
             </td>
-            <td class="px-3.5 py-3 text-right text-slate-300 tabular-nums">${b.matches}</td>
             <td class="px-3.5 py-3 text-right text-emerald-400 font-medium tabular-nums">${b.goals}</td>
             <td class="px-3.5 py-3 text-right text-sky-400 font-medium tabular-nums">${b.assists}</td>
             <td class="px-3.5 py-3 text-right text-amber-400 font-semibold tabular-nums">${b.ga}</td>
-            <td class="px-3.5 py-3 text-right text-emerald-400/90 tabular-nums">${b.goalsPerMatch.toFixed(2)}</td>
-            <td class="px-3.5 py-3 text-right text-sky-400/90 tabular-nums">${b.assistsPerMatch.toFixed(2)}</td>
-            <td class="px-3.5 py-3 text-right text-slate-300 tabular-nums">${b.perMatch.toFixed(2)}</td>
-            <td class="px-3.5 py-3 text-right text-purple-300 tabular-nums" title="${b.multiGaMatches} out of ${b.matches} outings">${b.multiGaMatches} <span class="text-[11px] text-purple-400/70">(${b.multiGaRate.toFixed(0)}%)</span></td>
-            <td class="px-3.5 py-3 text-right text-amber-300/90 tabular-nums" title="${b.dualMatches} outings with goal & assist">${b.dualMatches}</td>
+            <td class="px-3.5 py-3 text-right text-slate-300 tabular-nums">${b.contributions}</td>
+            <td class="px-3.5 py-3 text-right text-purple-300 tabular-nums" title="${b.multiGaMatches} games with 2+ G+A">${b.multiGaMatches}</td>
+            <td class="px-3.5 py-3 text-right text-amber-300/90 tabular-nums" title="${b.dualMatches} games with goal & assist">${b.dualMatches}</td>
             <td class="px-3.5 py-3 text-right text-slate-200 font-medium tabular-nums" title="Best: ${b.bestGa} G+A (${b.bestGoals}G, ${b.bestAssists}A)">${b.bestGa}</td>
             <td class="px-3.5 py-3 text-right text-slate-300 tabular-nums">${b.gaShare.toFixed(1)}%</td>
           </tr>`;
@@ -591,7 +546,7 @@
         el.filterBotName.textContent = selectedBot;
         el.chartFilterNotice.classList.remove("hidden");
         el.trendChartTitle.textContent = `${selectedBot} — Cumulative G+A`;
-        el.recentLogTitle.textContent = `Recent Outings (${selectedBot})`;
+        el.recentLogTitle.textContent = `Recent Contributions (${selectedBot})`;
 
         const filteredRows = rawRows.filter((r) => r.botName === selectedBot);
         renderLog(filteredRows, selectedBot);
@@ -601,21 +556,21 @@
         el.filterBotName.textContent = "";
         el.chartFilterNotice.classList.add("hidden");
         el.trendChartTitle.textContent = "Cumulative G+A Timeline";
-        el.recentLogTitle.textContent = "Recent Scoring Outings";
+        el.recentLogTitle.textContent = "Recent Contributions";
 
         renderLog(rawRows, null);
         renderLineChart(rawRows, null);
       }
     }
 
-    // Render Recent Match Log
+    // Render Recent Contributions Log
     function renderLog(rows, botFilter) {
       const recent = [...rows].reverse().slice(0, 25);
       const label = botFilter ? `(${botFilter})` : "";
-      el.logCount.textContent = `${rows.length} ${rows.length === 1 ? "outing" : "outings"} ${label}`.trim();
+      el.logCount.textContent = `${rows.length} ${rows.length === 1 ? "entry" : "entries"} ${label}`.trim();
 
       if (recent.length === 0) {
-        el.logBody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">No scoring outings ${botFilter ? `for ${escapeHtml(botFilter)}` : "yet"}.</td></tr>`;
+        el.logBody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">No contributions logged ${botFilter ? `for ${escapeHtml(botFilter)}` : "yet"}.</td></tr>`;
         return;
       }
 
@@ -623,7 +578,7 @@
         .map((r) => {
           let typeBadge = `<span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300">G+A</span>`;
           if (r.goals > 0 && r.assists > 0) {
-            typeBadge = `<span class="px-2 py-0.5 rounded text-[10px] bg-amber-500/15 text-amber-300 border border-amber-500/30">Dual Outing</span>`;
+            typeBadge = `<span class="px-2 py-0.5 rounded text-[10px] bg-amber-500/15 text-amber-300 border border-amber-500/30">Dual (G+A)</span>`;
           } else if (r.goals > 0) {
             typeBadge = `<span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Goal(s)</span>`;
           } else if (r.assists > 0) {
@@ -813,7 +768,7 @@
       }
     }
 
-    // Export CSV with full analytics
+    // Export CSV with pure contribution analytics
     function exportLeaderboardCsv() {
       const bots = aggregateBots(rawRows);
       const sortKey = el.sortSelect.value;
@@ -823,17 +778,13 @@
         "Rank",
         "Bot Name",
         "Role",
-        "Scoring Outings",
         "Goals",
         "Assists",
         "Total G+A",
-        "Goals / Outing",
-        "Assists / Outing",
-        "G+A / Outing",
-        "2+ G+A Outings",
-        "Explosiveness %",
-        "Dual Outings (G+A)",
-        "Best Game G+A",
+        "Contributions",
+        "2+ G+A Games",
+        "Dual Games (G+A)",
+        "Best Single Game",
         "Club G+A Share %"
       ];
       const lines = [headers.join(",")];
@@ -844,15 +795,11 @@
           idx + 1,
           nameEscaped,
           `"${b.role.label}"`,
-          b.matches,
           b.goals,
           b.assists,
           b.ga,
-          b.goalsPerMatch.toFixed(2),
-          b.assistsPerMatch.toFixed(2),
-          b.perMatch.toFixed(2),
+          b.contributions,
           b.multiGaMatches,
-          `${b.multiGaRate.toFixed(1)}%`,
           b.dualMatches,
           b.bestGa,
           `${b.gaShare.toFixed(1)}%`
@@ -882,10 +829,10 @@
       }
 
       let text = "🏆 **FC 27 Clubs — Bot Leaderboard Summary**\n\n";
-      text += "| # | Bot Name | Role | Outings | Goals | Assists | G+A | G/Out | A/Out | 2+ G+A | Best | Share |\n";
-      text += "|---|---|---|---|---|---|---|---|---|---|---|---|\n";
+      text += "| # | Bot Name | Role | Goals | Assists | Total G+A | Entries | 2+ G+A | Dual | Best | Share |\n";
+      text += "|---|---|---|---|---|---|---|---|---|---|---|\n";
       sorted.forEach((b, idx) => {
-        text += `| ${idx + 1} | ${b.botName} | ${b.role.label} | ${b.matches} | ${b.goals} | ${b.assists} | ${b.ga} | ${b.goalsPerMatch.toFixed(2)} | ${b.assistsPerMatch.toFixed(2)} | ${b.multiGaMatches} | ${b.bestGa} | ${b.gaShare.toFixed(1)}% |\n`;
+        text += `| ${idx + 1} | ${b.botName} | ${b.role.label} | ${b.goals} | ${b.assists} | ${b.ga} | ${b.contributions} | ${b.multiGaMatches} | ${b.dualMatches} | ${b.bestGa} | ${b.gaShare.toFixed(1)}% |\n`;
       });
 
       try {

@@ -7,7 +7,7 @@ A static, real-time analytics dashboard for tracking EA Sports FC 27 Clubs AI bo
 ## Architecture & Data Flow
 
 ```
-[ Google Form ] (Submit Match Stats: Bot Name, Goals, Assists)
+[ Google Form ] (Submit: Bot Name, Goals, Assists)
        │
        ▼
 [ Google Sheet ] (Form Responses 1)
@@ -21,84 +21,68 @@ A static, real-time analytics dashboard for tracking EA Sports FC 27 Clubs AI bo
 
 ---
 
-## Data Input Workflow & The Contribution-Only Rule
+## Data Input Workflow: Pure Contribution Tracking
 
-Stats are recorded via your linked Google Form. To keep stats focused on impact:
+Stats are logged via your linked Google Form. To keep the focus strictly on confirmed impact:
 * **Responses are ONLY submitted when a bot makes a goal contribution ($G + A \ge 1$).**
-* If a bot plays in a match without scoring or assisting, no form response is submitted for that bot.
-* **Result:** Every row in the dataset represents a confirmed **Scoring Outing** / **Impact Match**.
+* There is no "matches played" tracking — every logged entry represents a game where the bot scored or assisted.
 
-### Submitted Columns
+### Submitted Fields
 | Form Field | Description |
 | :--- | :--- |
-| `Timestamp` | Submission date and time (used for session clustering and timeline trends). |
+| `Timestamp` | Submission date & time (used for timeline trends and chronological tracking). |
 | `Bot Name` | Name of the AI bot (e.g. `A. Morales`, `K. Lindqvist`). |
-| `Goals` | Number of goals scored by this bot in this match. |
-| `Assists` | Number of assists provided by this bot in this match. |
+| `Goals` | Number of goals scored by this bot in this game. |
+| `Assists` | Number of assists provided by this bot in this game. |
 
 ---
 
 ## Statistical Metrics & How They Are Calculated
 
-### 1. Match Counts
-* **Scoring Outings ($M$)**:
-  $$\text{Outings} = \text{Count of submitted entries for the bot}$$
-  Because rows are only logged when a bot contributes, each entry equals 1 confirmed scoring outing.
-* **Unique Club Matches**:
-  Estimated by clustering entry timestamps within a **rolling 5-minute window** ($\Delta t \le 300\text{ seconds}$). When multiple bot entries are submitted around the same time, they are grouped as a single team match.
-
-### 2. Offensive Production
-* **Goals ($G$)**: Total goals scored across all outings: $\sum \text{Goals}$.
-* **Assists ($A$)**: Total assists recorded across all outings: $\sum \text{Assists}$.
-* **Total G+A**: Combined goal contributions:
+### 1. Goal Contributions
+* **Goals ($G$)**: Total goals scored across all logged entries:
+  $$G = \sum \text{Goals}$$
+* **Assists ($A$)**: Total assists provided across all logged entries:
+  $$A = \sum \text{Assists}$$
+* **Total G+A**: Combined offensive contributions:
   $$\text{Total G+A} = G + A$$
+* **Contributions (Entries)**: Count of submitted entries where the bot hit the scoresheet ($G + A \ge 1$).
 
-### 3. Per-Outing Rates (Averages)
-* **Goals / Outing**:
-  $$\text{G / Outing} = \frac{G}{M}$$
-* **Assists / Outing**:
-  $$\text{A / Outing} = \frac{A}{M}$$
-* **G+A / Outing (Contribution Density)**:
-  $$\text{G+A / Outing} = \frac{G + A}{M}$$
-
-### 4. Consistency & Explosiveness Metrics
-* **2+ G+A Outings (Multi-Contribution)**:
-  Count of games where the bot contributed 2 or more G+A ($G + A \ge 2$) in a single match.
-* **Explosiveness Rate**:
-  Percentage of a bot's outings that produced multiple goal contributions:
-  $$\text{Explosiveness \%} = \frac{\text{Outings with } G+A \ge 2}{M} \times 100\%$$
-* **Dual Outings (Complete Performance)**:
-  Count of matches where the bot achieved **both** a goal and an assist in the same game ($G > 0 \land A > 0$).
-* **Best Single Match (Personal Best)**:
-  Highest total G+A recorded in any individual outing:
+### 2. Impact & Performance Profiles
+* **2+ G+A Games (Multi-Contribution)**:
+  Number of games where the bot contributed 2 or more G+A ($G + A \ge 2$) in a single entry.
+* **Dual Games (Complete Performance)**:
+  Number of games where the bot achieved **both** a goal and an assist in the same entry ($G > 0 \land A > 0$).
+* **Best Single Game**:
+  Highest total G+A recorded in any individual entry:
   $$\text{Best Game} = \max(G + A)$$
 * **Club G+A Share %**:
-  The bot's percentage share of all bot goal contributions across the entire club:
+  Percentage share of the club's overall bot goal contributions produced by this bot:
   $$\text{Club Share \%} = \frac{\text{Total G+A}_{\text{bot}}}{\sum \text{Total G+A}_{\text{team}}} \times 100\%$$
 
 ---
 
-## Role Profiles & Archetype Classification
+## Tactical Role Profiles
 
-The dashboard automatically tags each bot with a tactical role badge based on their **Goal-to-Contribution Ratio** ($G / (G + A)$):
+Each bot is automatically assigned a role badge based on their **Goal-to-Contribution Ratio** ($G / (G + A)$):
 
 | Role Badge | Archetype | Criteria | Description |
 | :---: | :---: | :---: | :--- |
 | ⚽ **Finisher** | Pure Goalscorer | $\ge 70\%$ of G+A from Goals | Lethal poacher who finishes chances in the box. |
-| 🎯 **Playmaker** | Creator / Maestro | $\ge 70\%$ of G+A from Assists | Creative engine who primarily sets up human and AI teammates. |
-| 🔥 **Dual-Threat** | Complete Attacker | Balanced ($>30\%$ & $<70\%$ Goals) | Elite all-round forward who scores and assists with equal danger. |
-| 🛡️ **Depth** | Squad Player | $G + A = 0$ | Squad rotation bot. |
+| 🎯 **Playmaker** | Creator / Maestro | $\ge 70\%$ of G+A from Assists | Creative engine who sets up teammates. |
+| 🔥 **Dual-Threat** | Complete Attacker | Balanced ($>30\%$ & $<70\%$ Goals) | All-round attacker who scores and assists with equal threat. |
+| 🛡️ **Depth** | Squad Player | $G + A = 0$ | Baseline squad contributor. |
 
 ---
 
-## Trophy Cabinet & Dynamic Club Awards
+## Trophy Cabinet & Club Awards
 
 Featured cards at the top of the dashboard dynamically spotlight team leaders:
 
 * 👑 **Club MVP**: Bot with the highest overall Total G+A (and displays their club output share %).
-* 👟 **Golden Boot**: Leading goalscorer (with goals per outing).
-* 🎯 **Top Playmaker**: Leading assist provider (with assists per outing).
-* 💥 **Most Explosive**: Bot with the most multi-contribution ($2+ \text{ G+A}$) outings (tiebreak: highest single-game G+A).
+* 👟 **Golden Boot**: Leading goalscorer.
+* 🎯 **Top Playmaker**: Leading assist provider.
+* 💥 **Most Explosive**: Bot with the most multi-contribution ($2+ \text{ G+A}$) games (tiebreak: highest single-game G+A).
 
 ---
 
@@ -106,15 +90,15 @@ Featured cards at the top of the dashboard dynamically spotlight team leaders:
 
 1. **Club G+A Share (Donut Chart)**: Visualizes the percentage distribution of bot contributions across top performers and the rest of the squad.
 2. **Goals vs. Assists by Bot (Stacked Bar Chart)**: Compares individual scoring volume versus playmaking volume side-by-side.
-3. **Cumulative G+A Timeline (Line Chart)**: Tracks progressive goal contribution growth over time. When a bot is selected from the leaderboard, the chart filters dynamically to show only that bot's curve.
+3. **Cumulative G+A Timeline (Line Chart)**: Tracks progressive goal contribution growth over time. Clicking a bot in the leaderboard filters this chart to show only that bot's curve.
 
 ---
 
-## Interactive Dashboard Features
+## Dashboard Features
 
-* **Interactive Bot Filtering**: Click any bot row in the Leaderboard to highlight that bot and filter both the **Cumulative G+A line chart** and the **Recent Scoring Outings** table to that bot. Click again or use the **"✕ Clear filter"** badge to reset.
+* **Interactive Bot Filtering**: Click any bot row in the Leaderboard to highlight that bot and filter both the **Cumulative G+A line chart** and the **Recent Contributions** log to that bot. Click again or use the **"✕ Clear filter"** badge to reset.
 * **Auto-Refresh Toggle (2m)**: Check the **"Auto-refresh (2m)"** box in the header during club sessions to automatically fetch the latest Google Sheet data every 120 seconds.
-* **Multi-Column Sorting & Instant Search**: Sort by any of the 11 analytical columns (`Total G+A`, `Goals`, `Assists`, `Outings`, `G / Outing`, `A / Outing`, `2+ G+A`, `Dual Outings`, `Best Match`, `Share %`) or filter by bot name.
+* **Multi-Metric Sorting & Search**: Sort by `Total G+A`, `Goals`, `Assists`, `Contributions`, `2+ G+A Games`, `Dual Games`, `Best Game`, or `Club Share %`.
 * **Export CSV**: Click **"Export CSV"** to download the aggregated leaderboard as `fc27-bot-leaderboard.csv`.
 * **Copy Summary**: Click **"Copy Summary"** to copy a clean Markdown leaderboard table directly to your clipboard for sharing in Discord or club chats.
 
