@@ -27,7 +27,7 @@
         </div>
         <p class="text-sm text-slate-400 mt-1">Live bot Goals, Assists, and Matches Played synced from Google Sheets CSV.</p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <span id="statusBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20">
           <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
           Sample Data
@@ -35,6 +35,10 @@
         <button id="refreshBtn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
           Refresh
         </button>
+        <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-900 border border-slate-700 text-slate-300 cursor-pointer select-none hover:border-slate-600 transition">
+          <input id="autoRefreshToggle" type="checkbox" class="w-3.5 h-3.5 rounded bg-slate-950 border-slate-700 text-emerald-500 focus:ring-0 cursor-pointer accent-emerald-500" />
+          <span>Auto-refresh (2m)</span>
+        </label>
       </div>
     </header>
 
@@ -97,7 +101,12 @@
         </div>
       </div>
       <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
-        <h2 class="text-sm font-semibold text-slate-200 mb-3">Cumulative Goal Contributions (G+A)</h2>
+        <div class="flex items-center justify-between mb-3">
+          <h2 id="trendChartTitle" class="text-sm font-semibold text-slate-200">Cumulative Goal Contributions (G+A)</h2>
+          <span id="chartFilterNotice" class="hidden text-xs text-emerald-400 font-medium bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+            Filtered
+          </span>
+        </div>
         <div class="relative h-72">
           <canvas id="trendLineChart"></canvas>
         </div>
@@ -106,8 +115,14 @@
 
     <!-- Leaderboard -->
     <section class="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden">
-      <div class="p-4 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h2 class="text-sm font-semibold text-slate-200">Bot Leaderboard</h2>
+      <div class="p-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h2 class="text-sm font-semibold text-slate-200">Bot Leaderboard</h2>
+          <span id="filterBadge" class="hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+            <span>Filtered: <strong id="filterBotName"></strong></span>
+            <button id="clearFilterBtn" type="button" class="ml-1 text-emerald-400 hover:text-white font-bold text-sm leading-none" title="Clear filter">&times;</button>
+          </span>
+        </div>
         <div class="flex flex-wrap items-center gap-2">
           <input
             id="searchInput"
@@ -120,13 +135,23 @@
             <option value="goals">Sort: Goals</option>
             <option value="assists">Sort: Assists</option>
             <option value="matches">Sort: Matches</option>
+            <option value="goalsPerMatch">Sort: Goals / Match</option>
+            <option value="assistsPerMatch">Sort: Assists / Match</option>
             <option value="perMatch">Sort: G+A / Match</option>
           </select>
+          <button id="exportCsvBtn" type="button" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span>Export CSV</span>
+          </button>
+          <button id="copySummaryBtn" type="button" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+            <span id="copySummaryText">Copy Summary</span>
+          </button>
         </div>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">
-          <thead class="bg-slate-950/60 text-xs uppercase text-slate-400 border-b border-slate-800">
+          <thead class="bg-slate-950/60 text-xs uppercase text-slate-400 border-b border-slate-800 select-none">
             <tr>
               <th class="px-4 py-3 font-medium">#</th>
               <th class="px-4 py-3 font-medium">Bot Name</th>
@@ -134,18 +159,25 @@
               <th class="px-4 py-3 font-medium text-right">Goals</th>
               <th class="px-4 py-3 font-medium text-right">Assists</th>
               <th class="px-4 py-3 font-medium text-right">G+A</th>
-              <th class="px-4 py-3 font-medium text-right">G+A / Match</th>
+              <th class="px-4 py-3 font-medium text-right whitespace-nowrap">Goals / Match</th>
+              <th class="px-4 py-3 font-medium text-right whitespace-nowrap">Assists / Match</th>
+              <th class="px-4 py-3 font-medium text-right whitespace-nowrap">G+A / Match</th>
             </tr>
           </thead>
           <tbody id="leaderboardBody" class="divide-y divide-slate-800/80"></tbody>
         </table>
+      </div>
+      <div class="px-4 py-2 bg-slate-950/40 border-t border-slate-800 text-[11px] text-slate-500">
+        Tip: Click any bot row to filter the Cumulative G+A chart and Recent Match Entries to that bot.
       </div>
     </section>
 
     <!-- Recent Log -->
     <section class="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden">
       <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-        <h2 class="text-sm font-semibold text-slate-200">Recent Match Entries</h2>
+        <div class="flex items-center gap-2">
+          <h2 id="recentLogTitle" class="text-sm font-semibold text-slate-200">Recent Match Entries</h2>
+        </div>
         <span id="logCount" class="text-xs text-slate-400">0 entries</span>
       </div>
       <div class="overflow-x-auto">
@@ -173,26 +205,38 @@
     const STORAGE_KEY = "fc27_bot_csv_url";
 
     const SAMPLE_ROWS = [
-      { Timestamp: "2026-11-20 21:15:00", "Bot Name": "A. Morales", "Matches Played": 1, Goals: 2, Assists: 1 },
-      { Timestamp: "2026-11-20 21:15:00", "Bot Name": "K. Lindqvist", "Matches Played": 1, Goals: 1, Assists: 2 },
-      { Timestamp: "2026-11-21 22:05:00", "Bot Name": "A. Morales", "Matches Played": 1, Goals: 1, Assists: 0 },
-      { Timestamp: "2026-11-21 22:05:00", "Bot Name": "T. Vance", "Matches Played": 1, Goals: 0, Assists: 1 }
+      { Timestamp: "2026-11-20 21:15:00", "Bot Name": "A. Morales", Goals: 2, Assists: 1 },
+      { Timestamp: "2026-11-20 21:15:00", "Bot Name": "K. Lindqvist", Goals: 1, Assists: 2 },
+      { Timestamp: "2026-11-21 22:05:00", "Bot Name": "A. Morales", Goals: 1, Assists: 0 },
+      { Timestamp: "2026-11-21 22:05:00", "Bot Name": "T. Vance", Goals: 0, Assists: 1 }
     ];
 
     let rawRows = [];
     let barChart = null;
     let lineChart = null;
+    let selectedBot = null;
+    let autoRefreshTimer = null;
 
     const el = {
       csvForm: document.getElementById("csvForm"),
       csvUrlInput: document.getElementById("csvUrlInput"),
       sampleBtn: document.getElementById("sampleBtn"),
       refreshBtn: document.getElementById("refreshBtn"),
+      autoRefreshToggle: document.getElementById("autoRefreshToggle"),
       statusBadge: document.getElementById("statusBadge"),
       errorBanner: document.getElementById("errorBanner"),
       searchInput: document.getElementById("searchInput"),
       sortSelect: document.getElementById("sortSelect"),
       leaderboardBody: document.getElementById("leaderboardBody"),
+      filterBadge: document.getElementById("filterBadge"),
+      filterBotName: document.getElementById("filterBotName"),
+      clearFilterBtn: document.getElementById("clearFilterBtn"),
+      exportCsvBtn: document.getElementById("exportCsvBtn"),
+      copySummaryBtn: document.getElementById("copySummaryBtn"),
+      copySummaryText: document.getElementById("copySummaryText"),
+      trendChartTitle: document.getElementById("trendChartTitle"),
+      chartFilterNotice: document.getElementById("chartFilterNotice"),
+      recentLogTitle: document.getElementById("recentLogTitle"),
       logBody: document.getElementById("logBody"),
       logCount: document.getElementById("logCount"),
       kpiMatches: document.getElementById("kpiMatches"),
@@ -232,12 +276,13 @@
         .replace(/'/g, "&#39;");
     }
 
+    // 1. Count matches from responses: 1 match per valid row
     function normalizeRows(rows) {
       return rows
         .map((r) => {
           const botName = String(r["Bot Name"] ?? r["Bot"] ?? "").trim();
           if (!botName) return null;
-          const matches = Number(r["Matches Played"] ?? r["Matches"] ?? 1) || 0;
+          const matches = 1;
           const goals = Number(r["Goals"] ?? 0) || 0;
           const assists = Number(r["Assists"] ?? 0) || 0;
           const timestamp = String(r["Timestamp"] ?? "").trim();
@@ -246,6 +291,7 @@
         .filter(Boolean);
     }
 
+    // 2. Aggregate bots with per-match splits
     function aggregateBots(rows) {
       const map = new Map();
       for (const r of rows) {
@@ -258,6 +304,8 @@
       }
       return Array.from(map.values()).map((b) => ({
         ...b,
+        goalsPerMatch: b.matches > 0 ? b.goals / b.matches : 0,
+        assistsPerMatch: b.matches > 0 ? b.assists / b.matches : 0,
         perMatch: b.matches > 0 ? b.ga / b.matches : 0
       }));
     }
@@ -281,11 +329,17 @@
       el.kpiGA.textContent = totalGA;
       el.kpiTopBot.textContent = topBot ? `Top: ${topBot.botName} (${topBot.ga})` : "Top: —";
 
+      // If previously selected bot no longer exists, reset selection
+      if (selectedBot && !bots.some((b) => b.botName === selectedBot)) {
+        selectedBot = null;
+      }
+
       renderLeaderboard(bots);
-      renderLog(rawRows);
-      renderCharts(sortedByGA, rawRows);
+      renderBarChart(sortedByGA);
+      updateFilteredViews();
     }
 
+    // 2 & 3. Render leaderboard with Goals/Match and Assists/Match + clickable row selection
     function renderLeaderboard(bots) {
       const q = el.searchInput.value.trim().toLowerCase();
       const sortKey = el.sortSelect.value;
@@ -295,33 +349,85 @@
         .sort((a, b) => b[sortKey] - a[sortKey] || b.ga - a.ga);
 
       if (filtered.length === 0) {
-        el.leaderboardBody.innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-slate-500">No matching bots found.</td></tr>`;
+        el.leaderboardBody.innerHTML = `<tr><td colspan="9" class="px-4 py-6 text-center text-slate-500">No matching bots found.</td></tr>`;
         return;
       }
 
       el.leaderboardBody.innerHTML = filtered
-        .map(
-          (b, idx) => `
-          <tr class="hover:bg-slate-800/40 transition">
+        .map((b, idx) => {
+          const isSelected = selectedBot === b.botName;
+          const rowClass = isSelected
+            ? "bg-emerald-950/40 border-l-4 border-emerald-500 transition cursor-pointer"
+            : "hover:bg-slate-800/40 transition cursor-pointer";
+          const selectIcon = isSelected ? `<span class="ml-1.5 text-xs text-emerald-400">●</span>` : "";
+
+          return `
+          <tr data-bot="${escapeHtml(b.botName)}" class="${rowClass}">
             <td class="px-4 py-3 text-slate-400 font-medium">${idx + 1}</td>
-            <td class="px-4 py-3 font-medium text-white">${escapeHtml(b.botName)}</td>
+            <td class="px-4 py-3 font-medium text-white flex items-center">
+              <span>${escapeHtml(b.botName)}</span>
+              ${selectIcon}
+            </td>
             <td class="px-4 py-3 text-right text-slate-300 tabular-nums">${b.matches}</td>
             <td class="px-4 py-3 text-right text-emerald-400 font-medium tabular-nums">${b.goals}</td>
             <td class="px-4 py-3 text-right text-sky-400 font-medium tabular-nums">${b.assists}</td>
             <td class="px-4 py-3 text-right text-amber-400 font-semibold tabular-nums">${b.ga}</td>
+            <td class="px-4 py-3 text-right text-emerald-400/90 tabular-nums">${b.goalsPerMatch.toFixed(2)}</td>
+            <td class="px-4 py-3 text-right text-sky-400/90 tabular-nums">${b.assistsPerMatch.toFixed(2)}</td>
             <td class="px-4 py-3 text-right text-slate-300 tabular-nums">${b.perMatch.toFixed(2)}</td>
-          </tr>`
-        )
+          </tr>`;
+        })
         .join("");
+
+      // Attach click listeners to rows
+      el.leaderboardBody.querySelectorAll("tr[data-bot]").forEach((row) => {
+        row.addEventListener("click", () => {
+          const clickedBot = row.getAttribute("data-bot");
+          if (selectedBot === clickedBot) {
+            selectedBot = null;
+          } else {
+            selectedBot = clickedBot;
+          }
+          renderLeaderboard(aggregateBots(rawRows));
+          updateFilteredViews();
+        });
+      });
     }
 
-    function renderLog(rows) {
+    // 3. Update Line Chart and Recent Match Entries according to selectedBot
+    function updateFilteredViews() {
+      if (selectedBot) {
+        el.filterBadge.classList.remove("hidden");
+        el.filterBotName.textContent = selectedBot;
+        el.chartFilterNotice.classList.remove("hidden");
+        el.trendChartTitle.textContent = `${selectedBot} — Cumulative G+A`;
+        el.recentLogTitle.textContent = `Recent Matches (${selectedBot})`;
+
+        const filteredRows = rawRows.filter((r) => r.botName === selectedBot);
+        renderLog(filteredRows, selectedBot);
+        renderLineChart(filteredRows, selectedBot);
+      } else {
+        el.filterBadge.classList.add("hidden");
+        el.filterBotName.textContent = "";
+        el.chartFilterNotice.classList.add("hidden");
+        el.trendChartTitle.textContent = "Cumulative Goal Contributions (G+A)";
+        el.recentLogTitle.textContent = "Recent Match Entries";
+
+        renderLog(rawRows, null);
+        renderLineChart(rawRows, null);
+      }
+    }
+
+    function renderLog(rows, botFilter) {
       const recent = [...rows].reverse().slice(0, 25);
-      el.logCount.textContent = `${rows.length} ${rows.length === 1 ? "entry" : "entries"}`;
+      const label = botFilter ? `(${botFilter})` : "";
+      el.logCount.textContent = `${rows.length} ${rows.length === 1 ? "entry" : "entries"} ${label}`.trim();
+
       if (recent.length === 0) {
-        el.logBody.innerHTML = `<tr><td colspan="6" class="px-4 py-6 text-center text-slate-500">No match entries yet.</td></tr>`;
+        el.logBody.innerHTML = `<tr><td colspan="6" class="px-4 py-6 text-center text-slate-500">No match entries ${botFilter ? `for ${escapeHtml(botFilter)}` : "yet"}.</td></tr>`;
         return;
       }
+
       el.logBody.innerHTML = recent
         .map(
           (r) => `
@@ -337,7 +443,7 @@
         .join("");
     }
 
-    function renderCharts(sortedBots, rows) {
+    function renderBarChart(sortedBots) {
       if (typeof Chart === "undefined") return;
 
       const barCtx = document.getElementById("botBarChart").getContext("2d");
@@ -373,6 +479,10 @@
           }
         }
       });
+    }
+
+    function renderLineChart(rows, botFilter) {
+      if (typeof Chart === "undefined") return;
 
       let runningGA = 0;
       const labels = [];
@@ -391,7 +501,7 @@
           labels,
           datasets: [
             {
-              label: "Cumulative G+A",
+              label: botFilter ? `${botFilter} Cumulative G+A` : "Cumulative G+A",
               data: cumData,
               borderColor: "#fbbf24",
               backgroundColor: "rgba(251, 191, 36, 0.15)",
@@ -413,6 +523,106 @@
           }
         }
       });
+    }
+
+    // 4. Auto-refresh (2m) toggle
+    function setupAutoRefresh() {
+      if (el.autoRefreshToggle.checked) {
+        if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+        autoRefreshTimer = setInterval(() => {
+          const url = el.csvUrlInput.value.trim() || DEFAULT_CSV_URL;
+          if (url) {
+            loadCsvFromUrl(url);
+          }
+        }, 120000); // 120 seconds
+      } else {
+        if (autoRefreshTimer) {
+          clearInterval(autoRefreshTimer);
+          autoRefreshTimer = null;
+        }
+      }
+    }
+
+    // 5. Export CSV
+    function exportLeaderboardCsv() {
+      const bots = aggregateBots(rawRows);
+      const sortKey = el.sortSelect.value;
+      const sorted = [...bots].sort((a, b) => b[sortKey] - a[sortKey] || b.ga - a.ga);
+
+      const headers = ["Rank", "Bot Name", "Matches", "Goals", "Assists", "G+A", "Goals / Match", "Assists / Match", "G+A / Match"];
+      const lines = [headers.join(",")];
+
+      sorted.forEach((b, idx) => {
+        const nameEscaped = `"${b.botName.replace(/"/g, '""')}"`;
+        lines.push([
+          idx + 1,
+          nameEscaped,
+          b.matches,
+          b.goals,
+          b.assists,
+          b.ga,
+          b.goalsPerMatch.toFixed(2),
+          b.assistsPerMatch.toFixed(2),
+          b.perMatch.toFixed(2)
+        ].join(","));
+      });
+
+      const blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "fc27-bot-leaderboard.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // 5. Copy formatted summary table to clipboard
+    async function copyLeaderboardSummary() {
+      const bots = aggregateBots(rawRows);
+      const sortKey = el.sortSelect.value;
+      const sorted = [...bots].sort((a, b) => b[sortKey] - a[sortKey] || b.ga - a.ga);
+
+      if (sorted.length === 0) {
+        setCopyFeedback("No Data");
+        return;
+      }
+
+      let text = "FC 27 Clubs — Bot Leaderboard\n\n";
+      text += "| # | Bot Name | Matches | Goals | Assists | G+A | G/M | A/M | G+A/M |\n";
+      text += "|---|---|---|---|---|---|---|---|---|\n";
+      sorted.forEach((b, idx) => {
+        text += `| ${idx + 1} | ${b.botName} | ${b.matches} | ${b.goals} | ${b.assists} | ${b.ga} | ${b.goalsPerMatch.toFixed(2)} | ${b.assistsPerMatch.toFixed(2)} | ${b.perMatch.toFixed(2)} |\n`;
+      });
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+        }
+        setCopyFeedback("Copied!");
+      } catch (err) {
+        setCopyFeedback("Failed");
+      }
+    }
+
+    function setCopyFeedback(msg) {
+      const originalText = "Copy Summary";
+      el.copySummaryText.textContent = msg;
+      el.copySummaryBtn.classList.add("text-emerald-400", "border-emerald-500/50");
+      setTimeout(() => {
+        el.copySummaryText.textContent = originalText;
+        el.copySummaryBtn.classList.remove("text-emerald-400", "border-emerald-500/50");
+      }, 2000);
     }
 
     async function loadCsvFromUrl(url) {
@@ -444,6 +654,7 @@
       renderAll();
     }
 
+    // Event listeners
     el.csvForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const url = el.csvUrlInput.value.trim();
@@ -464,6 +675,16 @@
       if (url) loadCsvFromUrl(url);
       else loadSample();
     });
+
+    el.autoRefreshToggle.addEventListener("change", setupAutoRefresh);
+    el.clearFilterBtn.addEventListener("click", () => {
+      selectedBot = null;
+      renderLeaderboard(aggregateBots(rawRows));
+      updateFilteredViews();
+    });
+
+    el.exportCsvBtn.addEventListener("click", exportLeaderboardCsv);
+    el.copySummaryBtn.addEventListener("click", copyLeaderboardSummary);
 
     el.searchInput.addEventListener("input", () => renderLeaderboard(aggregateBots(rawRows)));
     el.sortSelect.addEventListener("change", () => renderLeaderboard(aggregateBots(rawRows)));
